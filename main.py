@@ -53,6 +53,7 @@ while running:
         print("ПОЛЕЗНЫЕ КОММАНДЫ:")
         print(" info - информация о вашем ПК")
         print(" gpt - настоящий чат с ChatGPT")
+        print(" token - установить токен для ChatGPT")
         print(" wifi - выдаёт список паролей wifi, к которым было подключено устройство")
         print(" course - курс валют")
         print(" rand - создает случайный пароль")
