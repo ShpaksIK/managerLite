@@ -1,4 +1,5 @@
 import json
+import os
 
 from messages import error
 
@@ -16,3 +17,17 @@ def save(fd) -> bool:
     except Exception as e:
         error("Произошла ошибка:", e)
         return False
+    
+filename = "data.json"
+if not os.path.exists(filename):
+    default_data = {
+        "name": "",
+        "balance": 100000,
+        "token": "",
+        "passwords": {},
+        "settings": {
+            "color": "WHITE",
+            "bgcolor": "BLACK"
+        }
+    }
+    save(default_data)

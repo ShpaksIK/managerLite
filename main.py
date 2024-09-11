@@ -1,4 +1,3 @@
-import json
 import datetime
 import os
 import sys
@@ -7,10 +6,16 @@ import requests
 import time
 import webbrowser
 import subprocess
+import platform
+import socket
+import getpass
+import math
 
+import psutil
 import openai
 import pyttsx3
 import translate
+import pyperclip
 from pyfiglet import Figlet
 
 from messages import error, suc
@@ -24,10 +29,10 @@ engine.setProperty('voice',voices[0].id)
 running = True
 check_bgcolor()
 check_color()
-os.system("cls")
+# os.system("cls")
 preview_text = Figlet(font='slant')
 print(preview_text.renderText('MANAGER Lite'))
-print(f"=============================================================================================\n Добро пожаловать. Список команд ---> help \n=============================================================================================")
+print(f"==================================================================\n Добро пожаловать. Список команд ---> help \n==================================================================")
 
 while running:
     text = input()
@@ -43,6 +48,7 @@ while running:
         print(" clear или cls - отчистить чат, введённые команды и т.п.")
         print(" color - изменить цвет текста")
         print(" bgcolor - изменить обводку текста")
+        print(" rename - изменить свой никнейм")
         print(" exit - выход из программы")
         print("ПОЛЕЗНЫЕ КОММАНДЫ:")
         print(" info - информация о вашем ПК")
@@ -59,6 +65,10 @@ while running:
         print(" ip - найти информацию по ip")
         print(" time - узнать время")
         print(" voice - воспроизвести текст в речь")
+        print(" calc - сосчитать математический пример")
+        print(" getpas - получить свой пароль в буфер обмена")
+        print(" addpas - добавить новый пароль в менеджер паролей")
+        print(" delpas - удалить пароль из менеджера паролей")
         print("РАЗВЛЕЧЕНИЕ:")
         print(" kazino - игра в казино ")
         print(" or - орел или решка?")
@@ -81,8 +91,8 @@ while running:
     
     elif text == "rand":
         symbol_password = ['1','2','3','4','5','6','7','8','9','0','q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','Q','W','E','R','T','Y','U','I','O','P','A','S','D','F','G','H','J','K','L','Z','X','C','V','B','N','M']
-        lenght = int(input(">>> Введите длину пароля: "))
         try:
+            lenght = int(input(">>> Введите длину пароля: "))
             password = ""
             for i in range(lenght):
                 password += random.choice(symbol_password)
@@ -149,7 +159,7 @@ while running:
                         fd['balance'] += stavka
                     else:
                         fd['balance'] -= stavka
-                        suc("Вы ничего не выиграли. Выпали числа " + rand_numbers)
+                        suc(f"Вы ничего не выиграли. Выпали числа {rand_numbers}")
                     save(fd)
         except ValueError:
             error("Введено неверное значене")
@@ -367,7 +377,7 @@ while running:
     
     elif text == "calc":
         def calculate(expression):
-            result = eval(expression)
+            result = eval(expression, {"__builtins__": {}}, {"abs": abs, "sin": math.sin, "cos": math.cos, "sqrt": math.sqrt, "pow": math.pow})
             return result
         expression = input(">>> Введите выражение для вычисления (/ex для отмены): ")
         if expression.lower() == "/ex":
@@ -379,6 +389,132 @@ while running:
             error(f"Возникла внутренняя ошибка: {e}")
 
     elif text == "prog":
-        print("\n========= ИНФОРМАЦИЯ =========")
-        print(f"Название: Manager Lite")
-        print(f"Исходник: ")
+        fd = load()
+        print("========= ИНФОРМАЦИЯ =========")
+        print("Название: ManagerLite")
+        print("Исходник: https://github.com/ShpaksIK/managerLite")
+        print("Создатель: https://github.com/ShpaksIK")
+        print(f"Ваш никнейм: {'не установлен' if fd['name'] == '' else fd['name']}")
+        print("\nПрограмма полностью анонимна и не раскрывает ваши данные (пароли, систему и т.п.).\nИсходный код прилагается. Если не доверяете, то проверьте исходник программы и установите его.")
+        print("================================")
+
+    elif text == "info":
+        try:
+            print("\n========= ИНФОРМАЦИЯ О ПК =========")
+            print("Информация о системе:")
+            print(f"Название ОС: {platform.system()}")
+            print(f"Версия ОС: {platform.version()}")
+            print(f"Архитектура: {platform.architecture()[0]}")
+            print(f"Имя компьютера: {platform.node()}")
+            print(f"Имя пользователя: {getpass.getuser()}")
+            print(f"Процессор: {platform.processor()}")
+            print()
+            print("Информация о памяти:")
+            mem = psutil.virtual_memory()
+            print(f"Общая память: {mem.total / (1024 ** 3):.2f} Гб")
+            print(f"Используемая память: {mem.used / (1024 ** 3):.2f} Гб")
+            print(f"Свободная память: {mem.free / (1024 ** 3):.2f} Гб")
+            print(f"Процент использования памяти: {mem.percent}%")
+            print()
+            print("Информация о процессоре:")
+            print(f"Количество логических ядер: {psutil.cpu_count(logical=True)}")
+            print(f"Количество физических ядер: {psutil.cpu_count(logical=False)}")
+            print(f"Загрузка процессора: {psutil.cpu_percent(interval=1)}%")
+            print()
+            print("Информация о дисках:")
+            partitions = psutil.disk_partitions()
+            for partition in partitions:
+                print(f"Диск: {partition.device}")
+                usage = psutil.disk_usage(partition.mountpoint)
+                print(f"    Общая память: {usage.total / (1024 ** 3):.2f} Гб")
+                print(f"    Используемая память: {usage.used / (1024 ** 3):.2f} Гб")
+                print(f"    Свободная память: {usage.free / (1024 ** 3):.2f} Гб")
+                print(f"    Процент использования: {usage.percent}%")
+            print()
+            print("Информация о сети:")
+            hostname = socket.gethostname()
+            ip_address = socket.gethostbyname(hostname)
+            print(f"Имя хоста: {hostname}")
+            print(f"IP адрес: {ip_address}")
+            print("Сетевые интерфейсы:")
+            interfaces = psutil.net_if_addrs()
+            for interface, addresses in interfaces.items():
+                print(f"  Интерфейс: {interface}")
+                for addr in addresses:
+                    print(f"    Адрес: {addr.address}, Тип: {addr.family}")
+            print("==========================================")
+        except Exception as e:
+            error(f"Возникла внутренняя ошибка: {e}")
+            
+    elif text == "rename":
+        nickname = input(">>> Введите новый никнейм (/ex для отмены): ")
+        if nickname == "/ex":
+            suc("Отменено")
+        else:
+            fd = load()
+            fd["name"] = nickname
+            save(fd)
+            suc(f"Ваш новый никнейм: {nickname}")
+    
+    elif text == "getpas":
+        def get_password(pas_id):
+            fd = load()
+            temp = 1
+            for k, v in fd["passwords"].items():
+                if temp == pas_id:
+                    pyperclip.copy(v)
+                    suc("Пароль в буфере обмена")
+                    break
+                temp += 1
+        suc("Вы открыли менеджер паролей. Выберите id нужного сервиса для копирования пароля")
+        fd = load()
+        temp_id = 1
+        for k, v in fd["passwords"].items():
+            print(f" - {k} ({temp_id}): *****")
+            temp_id += 1
+        if temp_id == 1:
+            error("Пароли еще не добавлены. Добавьте командой addpas")
+        else:
+            try:
+                pasget = int(input(">>> Выберите id сервиса: "))
+                get_password(pasget)
+            except ValueError:
+                error("Введено неверное значение")
+    
+    elif text == "addpas":
+        service_name = input(">>> Введите название сервиса (/ex для выхода): ")
+        if service_name == "/ex":
+            suc("Отменено")
+        else:
+            service_password = input("Введите пароль (/ex для выхода): ")
+            if service_password == "/ex":
+                suc("Отменено")
+            else:
+                fd = load()
+                fd["passwords"][service_name] = service_password
+                save(fd)
+                suc("Пароль успешно добавлен")
+
+    elif text == "delpas":
+        fd = load()
+        temp_id = 1
+        for i in fd["passwords"]:
+            print(f" - {i} ({temp_id})")
+            temp_id += 1
+        if temp_id == 1:
+            error("Пароли еще не добавлены. Добавьте командой addpas")
+        else:
+            try:
+                service_id = int(input(">>> Введите id сервиса для удаления (/ex для выхода): "))
+                temp_id = 1
+                for k, v in fd["passwords"].items():
+                    if temp_id == service_id:
+                        del fd["passwords"][k]
+                        save(fd)
+                        break
+                    temp_id += 1
+            except ValueError:
+                if service_id == "/ex":
+                    suc("Отменено")
+                else:
+                    error("Введено неверное значение")
